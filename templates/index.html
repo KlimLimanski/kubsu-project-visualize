@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Визуализатор функций</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
+        .container { background: white; padding: 30px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        input[type="text"] { width: 300px; padding: 10px; font-size: 16px; margin-bottom: 10px; }
+        button { padding: 10px 20px; font-size: 16px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        button:hover { background-color: #0056b3; }
+        #result { margin-top: 20px; }
+        img { max-width: 100%; border: 1px solid #ccc; border-radius: 5px; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Визуализация математики</h1>
+        <p>Введите функцию (например: <b>cos(arctan(x)) - |x|</b>)</p>
+        
+        <form id="plotForm">
+            <input type="text" id="expression" name="expression" placeholder="Введите функцию..." required>
+            <br>
+            <label>От: <input type="number" name="x_min" value="-10" style="width: 60px;"></label>
+            <label>До: <input type="number" name="x_max" value="10" style="width: 60px;"></label>
+            <br><br>
+            <button type="submit">Построить график</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('plotForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Загрузка...';
+            
+            try {
+                const response = await fetch('/plot', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText);
+                }
+                
+                const blob = await response.blob();
+                const imgUrl = URL.createObjectURL(blob);
+                resultDiv.innerHTML = `<img src="${imgUrl}" alt="График">`;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
